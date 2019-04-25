@@ -39,6 +39,9 @@ public class App
 			//abre o frame para exibir os log do system.out
 			Util.abrirCapturaLogConsole();
 			
+			//cria o usuario autocom se já não existir;
+			createUser();
+			
 			//exclui o banco de dados se existir
 			if(existeDatabase())
 				dropDatabase();
@@ -100,6 +103,24 @@ public class App
 		    
 		    return rs.next();
 	}
+	
+	/**
+	 * Cria o usuario do banco de dados
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
+	private static void createUser(){
+		try {
+			Connection connection = getConnection();
+			Statement stmt = connection.createStatement();
+			stmt.executeUpdate("CREATE USER autocom with password 'Autocom'");
+			connection.close();
+			
+			System.out.println("Usuario autocom criado com sucesso !");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
 	
 	/**
 	 * Cria o banco de dados
