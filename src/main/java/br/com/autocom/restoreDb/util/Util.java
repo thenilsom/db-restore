@@ -13,6 +13,24 @@ public final class Util {
 
 	private Util() {}
 	
+	/**
+	 * Concatena aspas simples na string
+	 * @param s
+	 * @return
+	 */
+	public static String concatenarAspasSimples(String s) {
+		return  "\'" + s + "\'";
+	}
+	
+	/**
+	 * Concatena aspas duplas na string
+	 * @param s
+	 * @return
+	 */
+	public static String concatenarAspasDuplas(String s) {
+		return  "\"" + s + "\"";
+	}
+	
 	public static String selecionarPasta(String title) {
 		visualWindows();
 		JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());

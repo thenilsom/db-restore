@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -26,15 +27,23 @@ public class App
 	   //  Database credentials
 	   static final String USER_NAME = "autocom";
 	   static final String PASS = "Autocom";
-	   static final String DB_NAME = "\"" + "ac-posto" + "\"";
+	   static final String DB_NAME = "ac-posto";
 
 	public static void main(String[] args){
 		try {
+			String senha = JOptionPane.showInputDialog(null, "Informe a senha");//senha é 'auto'
+			
+			if(!senha.equalsIgnoreCase("auto")) {
+				JOptionPane.showMessageDialog(null, "Senha inválida.");
+				System.exit(0);
+			}
+			
 			//abre o frame para exibir os log do system.out
 			Util.abrirCapturaLogConsole();
 			
-			//exclui o banco de dados
-			dropDatabase();
+			//exclui o banco de dados se existir
+			if(existeDatabase())
+				dropDatabase();
 			
 			//cria o banco novamente
 			createDatabase();
@@ -50,15 +59,29 @@ public class App
 	}
 	
 	/**
+	 * Retorna true se existe o banco de dados
+	 * @return
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
+	private static boolean existeDatabase() throws SQLException, ClassNotFoundException {
+		  	Connection connection = getConnection();
+		    Statement statement = connection.createStatement();
+		    ResultSet rs = statement.executeQuery("select * from pg_database where datname = " + Util.concatenarAspasSimples(DB_NAME));
+		    connection.close();
+		    
+		    return rs.next();
+	}
+	
+	/**
 	 * Cria o banco de dados
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 */
 	private static void createDatabase() throws ClassNotFoundException, SQLException {
-			Class.forName(JDBC_DRIVER);
-			Connection connection = DriverManager.getConnection(DB_URL, "postgres", PASS);
+			Connection connection = getConnection();
 			Statement stmt = connection.createStatement();
-			stmt.executeUpdate("CREATE DATABASE " + DB_NAME + " owner autocom");
+			stmt.executeUpdate("CREATE DATABASE " + Util.concatenarAspasDuplas(DB_NAME) + " owner autocom");
 			connection.close();
 			
 			 System.out.println("Banco: " + DB_NAME + " criado com sucesso !");
@@ -70,13 +93,23 @@ public class App
 	 * @throws SQLException
 	 */
 	private static void dropDatabase() throws ClassNotFoundException, SQLException {
-	    Class.forName(JDBC_DRIVER);
-	    Connection connection = DriverManager.getConnection(DB_URL, "postgres", PASS);
+	    Connection connection = getConnection();
 	    Statement statement = connection.createStatement();
-	    statement.executeUpdate("DROP DATABASE " + DB_NAME);
+	    statement.executeUpdate("DROP DATABASE " + Util.concatenarAspasDuplas(DB_NAME));
 	    connection.close();
 	    
 	    System.out.println("Banco: " + DB_NAME + " excluido com sucesso !");
+	}
+	
+	/**
+	 * Retorna o statement da connection
+	 * @return
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
+	private static Connection getConnection() throws ClassNotFoundException, SQLException {
+		 	Class.forName(JDBC_DRIVER);
+		    return DriverManager.getConnection(DB_URL, "postgres", PASS);
 	}
 	
 	/**
