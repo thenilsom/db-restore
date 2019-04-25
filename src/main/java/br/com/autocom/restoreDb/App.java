@@ -10,7 +10,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 
 import br.com.autocom.restoreDb.util.Util;
 
@@ -31,12 +34,7 @@ public class App
 
 	public static void main(String[] args){
 		try {
-			String senha = JOptionPane.showInputDialog(null, "Informe a senha");//senha é 'auto'
-			
-			if(!senha.equalsIgnoreCase("auto")) {
-				JOptionPane.showMessageDialog(null, "Senha inválida.");
-				System.exit(0);
-			}
+			requererAcesso();
 			
 			//abre o frame para exibir os log do system.out
 			Util.abrirCapturaLogConsole();
@@ -56,6 +54,36 @@ public class App
 			System.exit(0);
 		}
 		
+	}
+	
+	/**
+	 * Requere o acesso
+	 */
+	private static void requererAcesso() {
+		// Cria campo onde o usuario entra com a senha
+					JPasswordField password = new JPasswordField(10);
+					password.setEchoChar('*'); 
+					// Cria um rótulo para o campo
+					JLabel rotulo = new JLabel("Entre com a senha:");
+					// Coloca o rótulo e a caixa de entrada numa JPanel:
+					JPanel entUsuario = new JPanel();
+					entUsuario.add(rotulo);
+					entUsuario.add(password);
+					
+					boolean acertouSenha = false;
+					
+					do {
+						if(JOptionPane.showOptionDialog(null, entUsuario, "Acesso restrito", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Logar", "Cancelar"},  password)!= JOptionPane.YES_OPTION){
+							System.exit(0);
+					       }else{
+					    	   if(String.valueOf(password.getPassword()).equalsIgnoreCase("auto")) {
+					    		   acertouSenha = true;
+					    	   }else {
+					    		   JOptionPane.showMessageDialog(null, "Senha inválida");
+					    		   password.setText("");
+					    	   }
+					       }
+					} while (!acertouSenha);
 	}
 	
 	/**
