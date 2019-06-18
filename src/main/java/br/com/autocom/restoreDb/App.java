@@ -29,12 +29,14 @@ public class App
 
 	   //  Database credentials
 	   static final String USER_NAME = "autocom";
-	   static final String PASS = "Autocom";
+	   static String PASS = "Autocom";
 	   static final String DB_NAME = "ac-posto";
 
 	public static void main(String[] args){
 		try {
 			requererAcesso();
+			
+			testarConection();
 			
 			//abre o frame para exibir os log do system.out
 			Util.abrirCapturaLogConsole();
@@ -87,6 +89,17 @@ public class App
 					    	   }
 					       }
 					} while (!acertouSenha);
+	}
+	
+	/**
+	 * Faz um teste de conecção
+	 */
+	private static void testarConection() {
+		try {
+			getConnection();
+		} catch (Exception e) {
+			PASS = JOptionPane.showInputDialog(null, "Informe a senha do banco de dados");
+		}
 	}
 	
 	/**
