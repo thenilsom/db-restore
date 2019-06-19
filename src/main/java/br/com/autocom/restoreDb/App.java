@@ -98,7 +98,19 @@ public class App
 		try {
 			getConnection();
 		} catch (Exception e) {
-			PASS = JOptionPane.showInputDialog(null, "Informe a senha do banco de dados");
+			JPasswordField password = new JPasswordField(10);
+			password.setEchoChar('*');
+			JLabel rotulo = new JLabel("Informe a senha do banco de dados:");
+			JPanel entUsuario = new JPanel();
+			entUsuario.add(rotulo);
+			entUsuario.add(password);
+			if (JOptionPane.showOptionDialog(null, entUsuario, "Senha Banco", JOptionPane.YES_NO_OPTION,
+					JOptionPane.WARNING_MESSAGE, null, new String[] { "OK", "Cancelar" },
+					password) != JOptionPane.YES_OPTION) {
+				System.exit(0);
+			} else {
+				PASS = String.valueOf(password.getPassword());
+			}
 		}
 	}
 	
