@@ -201,7 +201,7 @@ public class App
 	       		    "--verbose",
 	       		    caminhoBackup);
 	           
-	           pb.environment().put("PGPASSWORD", PASS);
+	           pb.environment().put("PGPASSWORD", "Autocom");
 	           
 	           final Process processo = pb.start();
 	           final BufferedReader r = new BufferedReader(      
