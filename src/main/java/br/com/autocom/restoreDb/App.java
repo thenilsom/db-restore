@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -16,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 
 import br.com.autocom.restoreDb.util.Util;
+import br.com.autocom.restoreDb.util.VisualUtil;
 
 /**
  * Hello world!
@@ -26,6 +28,7 @@ public class App
 	 // JDBC driver name and database URL
 	   static final String JDBC_DRIVER = "org.postgresql.Driver";  
 	   static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/postgres";
+	   static final String DB_URL_AC_POSTO = "jdbc:postgresql://127.0.0.1:5432/ac-posto";
 
 	   //  Database credentials
 	   static final String USER_NAME = "autocom";
@@ -34,6 +37,8 @@ public class App
 
 	public static void main(String[] args){
 		try {
+			VisualUtil.look();
+			
 			requererAcesso();
 			
 			testarConection();
@@ -68,6 +73,7 @@ public class App
 		// Cria campo onde o usuario entra com a senha
 					JPasswordField password = new JPasswordField(10);
 					password.setEchoChar('*'); 
+					VisualUtil.enter_tab(password);
 					// Cria um rótulo para o campo
 					JLabel rotulo = new JLabel("Entre com a senha:");
 					// Coloca o rótulo e a caixa de entrada numa JPanel:
@@ -100,6 +106,7 @@ public class App
 		} catch (Exception e) {
 			JPasswordField password = new JPasswordField(10);
 			password.setEchoChar('*');
+			VisualUtil.enter_tab(password);
 			JLabel rotulo = new JLabel("Informe a senha do banco de dados:");
 			JPanel entUsuario = new JPanel();
 			entUsuario.add(rotulo);
@@ -186,12 +193,22 @@ public class App
 		    return DriverManager.getConnection(DB_URL, "postgres", PASS);
 	}
 	
+	/*
+	 * Retorna a connection com o banco ac-posto
+	 */
+	private static Connection getConnectionAcPosto() throws ClassNotFoundException, SQLException {
+		Class.forName(JDBC_DRIVER);
+	    return DriverManager.getConnection(DB_URL_AC_POSTO, "autocom", "Autocom");
+	}
+	
 	/**
 	 * Restaura o banco de dados
 	 * @throws IOException
 	 * @throws InterruptedException
+	 * @throws SQLException 
+	 * @throws ClassNotFoundException 
 	 */
-	private static void restoreDataBase() throws IOException, InterruptedException {
+	private static void restoreDataBase() throws IOException, InterruptedException, ClassNotFoundException, SQLException {
 		String caminhoBackup = Util.selecionarPasta("Selecione o arquivo de backup");
 	           ProcessBuilder pb = new ProcessBuilder( getCaminhoRestore(),
 	       		    "--host=localhost",
@@ -216,10 +233,23 @@ public class App
 	               processo.waitFor();    
 	               processo.destroy(); 
 	               
-	               JOptionPane.showMessageDialog(null, "Banco restaurado com sucesso !");
-	               
-	               System.exit(0);
+	              alterarAmbienteNFE();
 	}
+	
+	/**
+	 * Altera o ambente da NF-e para 2-Homologação
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
+	private static void alterarAmbienteNFE() throws SQLException, ClassNotFoundException {
+	  	Connection connection = getConnectionAcPosto();
+	  	PreparedStatement stmt = connection.prepareStatement("UPDATE " + Util.concatenarAspasDuplas("configuracao_nfe") + " set ambiente = 2");
+	  	stmt.executeUpdate();
+	  	connection.close();
+	   
+	   JOptionPane.showMessageDialog(null, "Banco restaurado com sucesso ! (AMBIENTE ALTERADO PARA 2-HOMOLOGAÇÃO)");
+       System.exit(0);
+}
 	
 	private static String getCaminhoRestore() {
 		return new File("").getAbsolutePath() + "/Backup/bin/pg_restore";
