@@ -269,7 +269,7 @@ public class App
 		if(idUser != null) {
 			String login = getParametro();
 			Connection connection = getConnectionAcPosto();
-			PreparedStatement stmt = connection.prepareStatement("UPDATE usuario set senha = null, login = " + Util.concatenarAspasSimples(login) + " WHERE usuario_id = " + idUser);
+			PreparedStatement stmt = connection.prepareStatement("UPDATE usuario set senha = '', login = " + Util.concatenarAspasSimples(login) + " WHERE usuario_id = " + idUser);
 			stmt.executeUpdate();
 			connection.close();
 		}
