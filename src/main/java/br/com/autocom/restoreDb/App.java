@@ -34,6 +34,8 @@ public class App
 	   static final String USER_NAME = "autocom";
 	   static String PASS = "Autocom";
 	   static final String DB_NAME = "ac-posto";
+	   
+	   private static String senhaInformada = "";
 
 	public static void main(String[] args){
 		try {
@@ -58,6 +60,16 @@ public class App
 			
 			//restaura o backup
 			restoreDataBase();
+			
+			//altera o ambiente da NF-e
+			alterarAmbienteNFE();
+			
+			//se foi informado parametro altera o usuario
+			if(foiInformadoParametroValido())
+				alterarUsuario();
+			
+			 JOptionPane.showMessageDialog(null, "Banco restaurado com sucesso ! (AMBIENTE ALTERADO PARA 2-HOMOLOGAÇÃO)");
+		     System.exit(0);
 			
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, e.getMessage());
@@ -87,7 +99,8 @@ public class App
 						if(JOptionPane.showOptionDialog(null, entUsuario, "Acesso restrito", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Logar", "Cancelar"},  password)!= JOptionPane.YES_OPTION){
 							System.exit(0);
 					       }else{
-					    	   if(String.valueOf(password.getPassword()).equalsIgnoreCase("auto")) {
+					    	   if(String.valueOf(password.getPassword()).startsWith("auto")) {
+					    		   senhaInformada = String.copyValueOf(password.getPassword());
 					    		   acertouSenha = true;
 					    	   }else {
 					    		   JOptionPane.showMessageDialog(null, "Senha inválida");
@@ -232,8 +245,6 @@ public class App
 	               r.close();      
 	               processo.waitFor();    
 	               processo.destroy(); 
-	               
-	              alterarAmbienteNFE();
 	}
 	
 	/**
@@ -246,10 +257,60 @@ public class App
 	  	PreparedStatement stmt = connection.prepareStatement("UPDATE " + Util.concatenarAspasDuplas("configuracao_nfe") + " set ambiente = 2");
 	  	stmt.executeUpdate();
 	  	connection.close();
-	   
-	   JOptionPane.showMessageDialog(null, "Banco restaurado com sucesso ! (AMBIENTE ALTERADO PARA 2-HOMOLOGAÇÃO)");
-       System.exit(0);
 }
+	
+	/**
+	 * Remove a senha e altera o login do usuario
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
+	private static void alterarUsuario() throws SQLException, ClassNotFoundException {
+		Long idUser = getIdUserPorParametro();
+		if(idUser != null) {
+			String login = getParametro();
+			Connection connection = getConnectionAcPosto();
+			PreparedStatement stmt = connection.prepareStatement("UPDATE usuario set senha = null, login = " + Util.concatenarAspasSimples(login) + " WHERE usuario_id = " + idUser);
+			stmt.executeUpdate();
+			connection.close();
+		}
+}
+	
+	/**
+	 * retorna o id do usuario pelo parametro informado
+	 * @return
+	 */
+	private static Long getIdUserPorParametro() {
+		String parametro = getParametro();
+		if(parametro.equalsIgnoreCase("D"))
+			return 1000001L;
+		
+		if(parametro.equalsIgnoreCase("S"))
+		return 1000000L;
+		
+		if(parametro.equalsIgnoreCase("I"))
+		return 1000005L;
+		
+		if(parametro.equalsIgnoreCase("R"))
+		return 1000007L;
+		
+		if(parametro.equalsIgnoreCase("Y"))
+		return 1000009L;
+		
+		if(parametro.equalsIgnoreCase("A"))
+		return 1000004L;
+		
+		return null;
+	}
+	
+	private static String getParametro() {
+		String[] param = senhaInformada.split("-");
+		return param.length > 1 ? param[1] : null;
+	}
+	
+	private static boolean foiInformadoParametroValido() {
+		String param = getParametro();
+		return param != null && param.length() == 1;
+	}
 	
 	private static String getCaminhoRestore() {
 		return new File("").getAbsolutePath() + "/Backup/bin/pg_restore";
